@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using UserManagerApp.Features;
 
 namespace UserManagerApp.DTOs
@@ -6,11 +7,11 @@ namespace UserManagerApp.DTOs
     public class UserUpdateDTO
     {
         [Required]
-        public int UserId { get; set; }
+        public int IdUser { get; set; }
 
         [Required]
         [StringLength(100)]
-        public string Name { get; set; }
+        public string NameUser { get; set; }
 
         [Required]
         [DataType(DataType.Date)]
@@ -19,6 +20,6 @@ namespace UserManagerApp.DTOs
 
         [Required]
         [Range(1, int.MaxValue)]
-        public int GenderId { get; set; }
+        public int IdGender { get; set; }
     }
 }

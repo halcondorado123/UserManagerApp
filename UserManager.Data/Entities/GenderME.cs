@@ -10,6 +10,5 @@ namespace UserManager.Data.Entities
     {
         public int IdGender { get; set; }
         public string GenderName { get; set; }
-        public ICollection<UserME> Users { get; set; }
     }
 }

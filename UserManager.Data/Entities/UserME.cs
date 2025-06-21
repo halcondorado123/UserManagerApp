@@ -13,6 +13,6 @@ namespace UserManager.Data.Entities
         public string NameUser { get; set; }
         public DateTime BirthDate { get; set; }
         public int IdGender { get; set; }
-        public GenderME Gender { get; set; }
+        public string Gender { get; set; }
     }
 }

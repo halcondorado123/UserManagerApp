@@ -13,19 +13,20 @@ namespace UserManagerApp.Features
             _maxAge = maxAge;
         }
 
-        protected override ValidationResult IsValid(object value, ValidationContext context)
+        public override bool IsValid(object value)
         {
-            if (value is DateTime birthDate)
-            {
-                var age = DateTime.Today.Year - birthDate.Year;
-                if (birthDate > DateTime.Today.AddYears(-age)) age--;
+            if (value is not DateTime birthDate)
+                return false;
 
-                if (age < _minAge || age > _maxAge)
-                {
-                    return new ValidationResult($"Age must be between {_minAge} and {_maxAge} years.");
-                }
-            }
-            return ValidationResult.Success;
+            var age = DateTime.Today.Year - birthDate.Year;
+            if (birthDate > DateTime.Today.AddYears(-age)) age--;
+
+            return age >= _minAge && age <= _maxAge;
+        }
+
+        public override string FormatErrorMessage(string name)
+        {
+            return $"La fecha de nacimiento no es válida (Parameter '{name}')";
         }
     }
 }
