@@ -67,11 +67,6 @@ En dicho repositorio encontrarás más detalles sobre la estructura, configuraci
   - `UserManagerApp.Web` (Frontend Razor)
 - Haz clic en **Aceptar**
 
-📷 Imágenes de referencia:
-
-![Paso 1 - Clic derecho a solución](./assets/configurar-proyectos.png)  
-![Paso 2 - Varios proyectos de inicio](./assets/proyectos-inicio.png)
-
 ---
 
 ## ✅ Validaciones Implementadas
