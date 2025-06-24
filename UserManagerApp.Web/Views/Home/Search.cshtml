@@ -1,35 +1,295 @@
 ﻿@using UserManagerApp.Web.DTOs
-@model List<UserDTO>
+@model PaginatedUserDTO
 
 @{
     ViewData["Title"] = "Búsqueda de usuarios";
+    var genders = ViewBag.Genders as List<GenderDTO>;
+}
+
+@if (genders == null || !genders.Any())
+{
+    <div class="alert alert-warning"> No se cargaron los géneros.</div>
 }
 
 <h1 class="mb-4">Búsqueda de usuarios</h1>
 
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.First().IdUser)</th>
-            <th>@Html.DisplayNameFor(model => model.First().NameUser)</th>
-            <th>@Html.DisplayNameFor(model => model.First().BirthDate)</th>
-            <th>@Html.DisplayNameFor(model => model.First().Gender)</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
-        {
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (Model.Users != null && Model.Users.Any())
+{
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
             <tr>
-                <td>@user.IdUser</td>
-                <td>@user.NameUser</td>
-                <td>@user.BirthDate.ToString("yyyy-MM-dd")</td>
-                <td>@user.Gender</td>
-                <td>
-                    <a asp-controller="Usuario" asp-action="Editar" asp-route-id="@user.IdUser" class="btn btn-warning btn-sm">Editar</a>
-                    <a asp-controller="Usuario" asp-action="Eliminar" asp-route-id="@user.IdUser" class="btn btn-danger btn-sm">Eliminar</a>
-                </td>
+                <th>@Html.DisplayNameFor(model => model.Users.First().IdUser)</th>
+                <th>@Html.DisplayNameFor(model => model.Users.First().NameUser)</th>
+                <th>@Html.DisplayNameFor(model => model.Users.First().BirthDate)</th>
+                <th>@Html.DisplayNameFor(model => model.Users.First().GenderId)</th>
+                <th>Acciones</th>
             </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr id="row-@user.IdUser">
+                    <td>@user.IdUser</td>
+
+                    <td>
+                        <span class="display-span" id="span-name-@user.IdUser">@user.NameUser</span>
+                        <input type="text" value="@user.NameUser"
+                               class="form-control form-control-sm edit-input d-none" id="input-name-@user.IdUser" />
+                    </td>
+
+                    <td>
+                        <span class="display-span" id="span-birth-@user.IdUser">@user.BirthDate.ToString("yyyy-MM-dd")</span>
+                        <input type="date" value="@user.BirthDate.ToString("yyyy-MM-dd")"
+                               class="form-control form-control-sm edit-input d-none" id="input-birth-@user.IdUser" />
+                    </td>
+
+                    <td>
+                        <span class="display-span"
+                              id="span-gender-@user.IdUser"
+                              data-gender-id="@user.GenderId">
+                            @(genders.FirstOrDefault(g => g.IdGender == user.GenderId)?.Gender ?? "Sin género")
+                        </span>
+
+                        <select class="form-control form-control-sm edit-input d-none" id="select-gender-@user.IdUser" name="Gender">
+                            <option value="">Seleccione género</option>
+                            @foreach (var gender in genders)
+                            {
+                                <option value="@gender.IdGender" selected="@(user.GenderId == gender.IdGender)">
+                                    @gender.Gender
+                                </option>
+                            }
+                        </select>
+                    </td>
+
+                    <td>
+                        <button id="btn-edit-@user.IdUser"
+                                class="btn btn-primary btn-sm"
+                                onclick="enableEdit(@user.IdUser)">
+                            Editar
+                        </button>
+
+                        <button id="btn-delete-@user.IdUser"
+                                type="button"
+                                class="btn btn-danger btn-sm"
+                                onclick="confirmDelete(@user.IdUser)">
+                            Eliminar
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-success btn-sm edit-input d-none"
+                                onclick="submitUpdate(@user.IdUser)">
+                            Guardar
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-secondary btn-sm edit-input d-none"
+                                onclick="cancelEdit(@user.IdUser)">
+                            Cancelar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Search" asp-route-page="@(Model.CurrentPage - 1)">Anterior</a>
+                </li>
+            }
+
+            @{
+                int startPage = Math.Max(1, Model.CurrentPage - 5);
+                int endPage = Math.Min(Model.TotalPages, startPage + 9);
+                for (int i = startPage; i <= endPage; i++)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" asp-action="Search" asp-route-page="@i">@i</a>
+                    </li>
+                }
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" asp-action="Search" asp-route-page="@(Model.CurrentPage + 1)">Siguiente</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+else
+{
+    <div class="alert alert-info">
+        No se encontraron usuarios que coincidan con los criterios de búsqueda.
+    </div>
+}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+@section Scripts {
+    <script>
+        async function enableEdit(id) {
+            // Mostrar los inputs
+            document.querySelectorAll(`#row-${id} .edit-input`).forEach(el => el.classList.remove('d-none'));
+            // Ocultar los spans
+            document.querySelectorAll(`#row-${id} .display-span`).forEach(el => el.classList.add('d-none'));
+            document.getElementById(`btn-edit-${id}`).classList.add('d-none');
+            document.getElementById(`btn-delete-${id}`).classList.add('d-none');
+
+            const select = document.getElementById(`select-gender-${id}`);
+            const spanGender = document.getElementById(`span-gender-${id}`);
+            const currentGenderId = spanGender.getAttribute("data-gender-id");
+
+            if (select.getAttribute("data-loaded") !== "true") {
+                select.setAttribute("data-loaded", "true");
+
+                try {
+                    const response = await fetch('@Url.Action("GetGenders", "User")');
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Error ${response.status}: ${errorText}`);
+                    }
+
+                    const genders = await response.json();
+                    select.innerHTML = ""; // Limpiar select
+
+                    genders.forEach(g => {
+                        const option = document.createElement('option');
+                        option.value = g.idGender;
+                        option.text = g.gender;
+
+                        if (parseInt(g.idGender) === parseInt(currentGenderId)) {
+                            option.selected = true;
+                        }
+
+                        select.appendChild(option);
+                    });
+
+                } catch (error) {
+                    console.error("❌ Error al cargar los géneros:", error);
+                    alert("Error al cargar los géneros: " + error.message);
+                }
+            }
         }
-    </tbody>
-</table>
+
+
+
+                    function submitUpdate(id) {
+            Swal.fire({
+                title: '¿Desea actualizar el registro?',
+                text: "Los cambios se guardarán en el sistema.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, actualizar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const name = document.getElementById(`input-name-${id}`).value;
+                    const birth = document.getElementById(`input-birth-${id}`).value;
+                    const genderSelect = document.getElementById(`select-gender-${id}`);
+                    const genderValue = genderSelect.value;
+                    const genderText = genderSelect.options[genderSelect.selectedIndex]?.text ?? "";
+                    const genderId = genderValue ? parseInt(genderValue) : null;
+
+                    if (!genderId || isNaN(genderId)) {
+                        Swal.fire('Atención', 'Por favor selecciona un género válido.', 'warning');
+                        return;
+                    }
+
+                    const user = {
+                        IdUser: id,
+                        NameUser: name,
+                        BirthDate: birth,
+                        GenderId: genderId
+                    };
+
+                    fetch('/User/Update', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(user)
+                    })
+                    .then(response => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else if (response.ok) {
+                               document.getElementById(`span-name-${id}`).innerText = name;
+                               document.getElementById(`span-birth-${id}`).innerText = birth;
+                               document.getElementById(`span-gender-${id}`).innerText = genderText;
+                               document.getElementById(`span-gender-${id}`).setAttribute("data-gender-id", genderId);
+
+                               document.querySelectorAll(`#row-${id} .edit-input`).forEach(el => el.classList.add('d-none'));
+                               document.querySelectorAll(`#row-${id} .display-span`).forEach(el => el.classList.remove('d-none'));
+
+                               document.getElementById(`btn-edit-${id}`).classList.remove('d-none');
+                               document.getElementById(`btn-delete-${id}`).classList.remove('d-none');
+
+                               Swal.fire('¡Actualizado!', 'El usuario fue actualizado correctamente.', 'success');
+                        } else {
+                            response.text().then(text => Swal.fire('Error', text, 'error'));
+                        }
+                    }).catch(error => {
+                        Swal.fire('Error', 'Hubo un problema al actualizar: ' + error, 'error');
+                    });
+
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    // Redirige a la grilla
+                    window.location.href = '@Url.Action("Search", "User")';
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            Swal.fire({
+                title: '¿Desea eliminar este usuario?',
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/User/Delete?userId=${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('¡Eliminado!', 'El usuario fue eliminado.', 'success')
+                                .then(() => {
+                                    window.location.href = data.redirectUrl;
+                                });
+                        } else {
+                            Swal.fire('Error', 'No se pudo eliminar el usuario.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error', 'Error inesperado: ' + error, 'error');
+                    });
+                }
+            });
+        }
+
+        function cancelEdit(id) {
+            // Restaurar visibilidad
+            document.querySelectorAll(`#row-${id} .edit-input`).forEach(el => el.classList.add('d-none'));
+            document.querySelectorAll(`#row-${id} .display-span`).forEach(el => el.classList.remove('d-none'));
+
+            // Volver a mostrar botones
+            document.getElementById(`btn-edit-${id}`).classList.remove('d-none');
+            document.getElementById(`btn-delete-${id}`).classList.remove('d-none');
+        }
+
+    </script>
+}

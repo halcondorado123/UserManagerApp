@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
 using UserManager.Data.Entities;
 using UserManager.Data.Interfaces;
 using UserManager.Extensions;
 using UserManagerApp.DTOs;
+using UserManagerApp.Web.DTOs;
 
 namespace UserManagerApp.Controllers
 {
@@ -22,11 +24,12 @@ namespace UserManagerApp.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("GetUsers")]
-        public Task<IActionResult> GetUsersAsync() =>
+        [HttpGet("GetPaginatedUsers")]
+        public Task<IActionResult> GetPaginatedUsersAsync(int pageNumber = 1) =>
             ControllerHelper.HandleRequestAsync(async () =>
             {
-                var users = await _usersRepository.GetAllUsersAsync();
+                const int pageSize = 5;
+                var users = await _usersRepository.GetPaginatedUsersAsync(pageNumber, pageSize);
                 return Ok(users);
             });
 
@@ -38,6 +41,15 @@ namespace UserManagerApp.Controllers
                 if (user == null) return NotFound("Cliente no encontrado.");
                 return Ok(user);
             });
+
+        [HttpGet("GetAllGenders")]
+        public async Task<IActionResult> GetAllGenders()
+        {
+            var genders = await _usersRepository.GetAllGendersAsync();
+
+            var genderDtos = _mapper.Map<List<GenderDTO>>(genders);
+            return Ok(genderDtos);
+        }
 
         [HttpPost("CreateUser")]
         public Task<IActionResult> CreateUserAsync([FromBody] UserCreateDTO userDto) =>
@@ -53,23 +65,23 @@ namespace UserManagerApp.Controllers
                 return Ok(new { UserId = createdUserId });
             });
 
-        [HttpPut("UpdateUser")]
-        public Task<IActionResult> UpdateUser([FromBody] UserUpdateDTO userDto) =>
+        [HttpPost("UpdateUser")]
+        public Task<IActionResult> UpdateUser([FromBody] UserDTO userDto) =>
             ControllerHelper.HandleRequestAsync(async () =>
             {
                 if (userDto == null)
-                    return BadRequest("Los datos del cliente son inválidos.");
+                    return BadRequest("Los datos del usuario son inválidos.");
 
                 if (userDto.IdUser <= 0)
-                    return BadRequest("El ID del cliente no es válido.");
+                    return BadRequest("El ID del usuario no es válido.");
 
                 var userEntity = _mapper.Map<UserME>(userDto);
-
                 var updatedUser = await _usersRepository.UpdateUserAsync(userEntity);
-                if (updatedUser == null)
-                    return NotFound("Cliente no encontrado para actualizar.");
 
-                return Ok(updatedUser);
+                if (updatedUser == null)
+                    return NotFound("Usuario no encontrado para actualizar.");
+
+                return Ok();
             });
 
         [HttpDelete("DeleteStudent")]

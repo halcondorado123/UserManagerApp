@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
 using UserManagerApp.Web.DTOs;
 
 namespace UserManagerApp.Web.Controllers
@@ -12,19 +13,77 @@ namespace UserManagerApp.Web.Controllers
         {
             _httpClient = httpClientFactory.CreateClient(); 
         }
-
-        public async Task<IActionResult> Search()
+        public async Task<IActionResult> Search(int page = 1, int pageSize = 10)
         {
-            var users = await _httpClient.GetFromJsonAsync<List<UserDTO>>($"{_apiUrl}/GetUsers");
+            var usersTask = _httpClient.GetFromJsonAsync<PaginatedUserDTO>(
+                $"{_apiUrl}/GetPaginatedUsers?pageNumber={page}&pageSize={pageSize}");
+
+            var gendersTask = _httpClient.GetFromJsonAsync<List<GenderDTO>>(
+                $"{_apiUrl}/GetAllGenders");
+
+            await Task.WhenAll(usersTask, gendersTask);
+
+            var users = usersTask.Result;
+            var genders = gendersTask.Result;
+
+            ViewBag.Genders = genders;
             return View("~/Views/Home/Search.cshtml", users);
         }
 
-
-        public async Task<IActionResult> Consulta()
+        [HttpGet]
+        public async Task<IActionResult> GetGenders()
         {
-            // Aquí usas HttpClient para llamar a la API
-            // var usuarios = await _httpClient.GetFromJsonAsync<List<UsuarioDto>>("api/usuarios");
-            return View(/*usuarios*/);
+            try
+            {
+                var genders = await _httpClient.GetFromJsonAsync<List<GenderDTO>>($"{_apiUrl}/GetAllGenders");
+                return Ok(genders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error al obtener géneros: {ex.Message}");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Update([FromBody] UserDTO user)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"{_apiUrl}/UpdateUser", user);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true, redirectUrl = Url.Action("Search", new { page = 1 }) });
+                }
+
+                var error = await response.Content.ReadAsStringAsync();
+                return BadRequest($"Error de API: {error}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Excepción: {ex.Message}");
+            }
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int userId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{_apiUrl}/DeleteStudent?userId={userId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return Json(new { success = true, redirectUrl = Url.Action("Search", new { page = 1 }) });
+                }
+
+                var error = await response.Content.ReadAsStringAsync();
+                return BadRequest($"Error de API: {error}");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Excepción: {ex.Message}");
+            }
         }
     }
 }

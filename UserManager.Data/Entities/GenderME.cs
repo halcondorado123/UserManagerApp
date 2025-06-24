@@ -9,6 +9,6 @@ namespace UserManager.Data.Entities
     public class GenderME
     {
         public int IdGender { get; set; }
-        public string GenderName { get; set; }
+        public string Gender { get; set; }
     }
 }

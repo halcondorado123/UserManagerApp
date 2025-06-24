@@ -1,5 +1,4 @@
-﻿// En UserManager.Data.Repositories o UserManager.Data
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using System.Data;
 using UserManager.Data.Interfaces;
 

@@ -14,7 +14,7 @@ namespace UserManagerApp.Web.DTOs
         [DataType(DataType.Date)]
         public DateTime BirthDate { get; set; }
 
-        [Display(Name = "Género")]
-        public string Gender { get; set; }
+        public int GenderId { get; set; }
+
     }
 }
