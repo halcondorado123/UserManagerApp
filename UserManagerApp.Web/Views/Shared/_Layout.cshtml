@@ -7,28 +7,49 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/UserManagerApp.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensures the body takes at least the full viewport height */
+            margin: 0; /* Removes default browser margin */
+        }
+
+        .content-wrap {
+            flex-grow: 1; /* Allows the content to expand and push the footer down */
+        }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-dark bg-primary border-bottom shadow mb-4">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">UserManagerApp.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <a class="navbar-brand fw-bold fs-5 text-white" href="#">UserManagerApp.Web</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-white" asp-area="" asp-controller="User" asp-action="Create">
+                                <i class="fas fa-home me-1"></i>Create
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-white" asp-area="" asp-controller="User" asp-action="Search">
+                                <i class="fas fa-search me-1"></i>Search
+                            </a>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
+
     </header>
     <div class="container">
         <main role="main" class="pb-3">
@@ -36,11 +57,39 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - UserManagerApp.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer style="background-color: #010417;" class="text-white py-4 border-top border-secondary mt-auto">
+        <div class="container text-center">
+            <p class="mb-2 fw-semibold">Desarrollado por Jhonattan Halcón Casallas Felipe</p>
+
+            <div class="d-flex justify-content-center gap-4 flex-wrap fs-6">
+                <div>
+                    <i class="fas fa-envelope me-1 text-white"></i>
+                    <a href="mailto:falconfelipedeveloper@gmail.com" class="text-white text-decoration-none">
+                        falconfelipedeveloper@gmail.com
+                    </a>
+                </div>
+                <div>
+                    <i class="fab fa-linkedin me-1 text-white"></i>
+                    <a href="https://www.linkedin.com/in/jhonattanhalconcasallasfelipe/" class="text-white text-decoration-none" target="_blank">
+                        linkedin.com/in/jhonattanhalconcasallasfelipe/
+                    </a>
+                </div>
+                <div>
+                    <i class="fab fa-github me-1 text-white"></i>
+                    <a href="https://github.com/halcondorado123?tab=repositories" class="text-white text-decoration-none" target="_blank">
+                        github.com/halcondorado123
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-3 small text-secondary">
+                &copy; @DateTime.Now.Year - Todos los derechos reservados
+            </div>
         </div>
     </footer>
+
+
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

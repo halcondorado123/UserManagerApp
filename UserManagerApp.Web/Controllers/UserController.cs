@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using System.Net.Http;
 using System.Net.Http.Json;
 using UserManagerApp.Web.DTOs;
 
@@ -13,6 +15,7 @@ namespace UserManagerApp.Web.Controllers
         {
             _httpClient = httpClientFactory.CreateClient(); 
         }
+
         public async Task<IActionResult> Search(int page = 1, int pageSize = 10)
         {
             var usersTask = _httpClient.GetFromJsonAsync<PaginatedUserDTO>(
@@ -42,6 +45,56 @@ namespace UserManagerApp.Web.Controllers
             {
                 return BadRequest($"Error al obtener géneros: {ex.Message}");
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            var genders = await _httpClient.GetFromJsonAsync<List<GenderDTO>>($"{_apiUrl}/GetAllGenders");
+            ViewBag.Genders = genders;
+
+            var model = new CreateUserDTO();
+            return View("~/Views/Home/Create.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateUserDTO userDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var genders = await _httpClient.GetFromJsonAsync<List<GenderDTO>>($"{_apiUrl}/GetAllGenders");
+                ViewBag.Genders = genders;
+                return View(userDto); 
+            }
+
+            try
+            {
+                var userCreateDto = new CreateUserDTO
+                {
+                    NameUser = userDto.NameUser,
+                    BirthDate = userDto.BirthDate,
+                    IdGender = userDto.IdGender
+                };
+
+                var response = await _httpClient.PostAsJsonAsync($"{_apiUrl}/CreateUser", userCreateDto);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    TempData["Success"] = "Usuario creado correctamente.";
+                    return RedirectToAction("Search");
+                }
+
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                TempData["Error"] = $"Error al crear el usuario: {errorMessage}";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Excepción al crear el usuario: {ex.Message}";
+            }
+
+            var fallbackGenders = await _httpClient.GetFromJsonAsync<List<GenderDTO>>($"{_apiUrl}/GetAllGenders");
+            ViewBag.Genders = fallbackGenders;
+            return View(userDto); 
         }
 
         [HttpPost]

@@ -4,7 +4,6 @@ namespace UserManagerApp.Web.DTOs
 {
     public class UserDTO
     {
-        [Required]
         public int IdUser { get; set; }
 
         [Display(Name = "Nombre")]

@@ -9,16 +9,25 @@ namespace UserManagerApp.Mappings
     {
         public MappingProfile()
         {
-            CreateMap<UserME, UserCreateDTO>().ReverseMap();
+            // Mapeo de entidad <-> DTOs específicos
+            CreateMap<UserME, CreateUserDTO>().ReverseMap();
             CreateMap<UserME, UserUpdateDTO>().ReverseMap();
             CreateMap<UserME, UserDeleteDTO>().ReverseMap();
-            CreateMap<UserME, UserDeleteDTO>().ReverseMap();
-            CreateMap<UserDTO, UserME>().ReverseMap(); ;
-            CreateMap<GenderME, GenderDTO>().ReverseMap();
 
             CreateMap<UserDTO, UserME>()
-            .ForMember(dest => dest.IdGender, opt => opt.MapFrom(src => src.GenderId));
+                .ForMember(dest => dest.IdGender, opt => opt.MapFrom(src => src.GenderId))
+                .ReverseMap();
+            CreateMap<CreateUserDTO, UserCreateDTO>()
+           .ForMember(dest => dest.GenderId, opt => opt.MapFrom(src => src.IdGender))
+                .ReverseMap();
 
+            CreateMap<UserCreateDTO, UserME>()
+                        .ForMember(dest => dest.IdGender, opt => opt.MapFrom(src => src.GenderId));
+
+            CreateMap<UserCreateDTO, UserME>()
+                .ForMember(dest => dest.IdGender, opt => opt.MapFrom(src => src.GenderId));
+
+            CreateMap<GenderME, GenderDTO>().ReverseMap();
         }
     }
 }

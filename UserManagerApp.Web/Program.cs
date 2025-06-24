@@ -18,9 +18,19 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+
+
 // Ruta principal de la app
+//app.MapControllerRoute(
+//    name: "default",
+//    pattern: "{controller=User}/{action=Search}/{id?}");
+
 app.MapControllerRoute(
     name: "default",
+    pattern: "{controller=User}/{action=Create}/{id?}");
+
+app.MapControllerRoute(
+    name: "search",
     pattern: "{controller=User}/{action=Search}/{id?}");
 
 app.Run();

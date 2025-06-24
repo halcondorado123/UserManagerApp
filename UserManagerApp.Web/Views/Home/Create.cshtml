@@ -1,0 +1,84 @@
+﻿@using UserManagerApp.Web.DTOs
+@model CreateUserDTO  // ✅ Coincide con lo que pasa el controlador
+
+@{
+    ViewData["Title"] = "Crear usuario";
+    var genders = ViewBag.Genders as List<GenderDTO>;
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow rounded-3">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Crear nuevo usuario</h3>
+                    
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["Error"]</div>
+                    }
+                    
+                    <form id="createForm" asp-action="Create" method="post">
+                        <div class="mb-3">
+                            <label asp-for="NameUser" class="form-label">Nombre completo</label>
+                            <input asp-for="NameUser" class="form-control" placeholder="Ingrese el nombre del usuario" />
+                            <span asp-validation-for="NameUser" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="BirthDate" class="form-label">Fecha de nacimiento</label>
+                            <input asp-for="BirthDate" type="date" class="form-control" />
+                            <span asp-validation-for="BirthDate" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="IdGender" class="form-label">Género</label>
+                            <select asp-for="IdGender" class="form-select">
+                                <option value="">Seleccione género</option>
+                                @if (genders != null)
+                                {
+                                    @foreach (var gender in genders)
+                                    {
+                                        <option value="@gender.IdGender"
+                                                selected="@(Model?.IdGender == gender.IdGender)">
+                                            @gender.Gender
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="IdGender" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-success">Crear</button>
+                            <a asp-action="Search" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById("createForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '¿Deseas crear este usuario?',
+                text: 'Verifica que toda la información esté correcta antes de continuar.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, crear',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    </script>
+}
